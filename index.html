@@ -877,6 +877,7 @@ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 document.querySelectorAll('[data-config]').forEach(el => { const v = CONFIG[el.dataset.config]; if (v) el.textContent = v; });
 $('#year').textContent = new Date().getFullYear();
 const mailHref = 'mailto:' + CONFIG.email + '?subject=' + encodeURIComponent('Tandemflug Anfrage');
+const emailIsPlaceholder = /example\.com$/i.test(CONFIG.email);   // noch keine echte Adresse eingetragen
 $('#mailLink').href = mailHref;
 const waHref = CONFIG.whatsapp ? 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent('Hallo, ich interessiere mich für einen Tandemflug!') : null;
 document.querySelectorAll('#waLink, .js-wa').forEach(a => {
@@ -884,6 +885,7 @@ document.querySelectorAll('#waLink, .js-wa').forEach(a => {
   else (a.closest('li') || a).remove();
 });
 if (!waHref) { $('#waOr').remove(); $('#mailLink').textContent = 'per E-Mail'; }
+if (emailIsPlaceholder) { if (waHref) { $('#waOr').remove(); $('#mailLink').remove(); } else $('#mailLink').closest('span').remove(); }
 
 /* Fluggebiete rendern */
 const fmt = n => n.toLocaleString('de-DE');
@@ -1060,6 +1062,11 @@ form.addEventListener('submit', async e => {
   const data = Object.fromEntries([...new FormData(form)].filter(([k, v]) => k !== 'botcheck' && String(v).trim() !== ''));
   if (form.botcheck.checked) return;
   const subject = (voucher.checked ? 'Gutschein-Anfrage' : 'Tandemflug-Anfrage') + ' von ' + data.Name + (data.Wunschdatum ? ' für ' + new Date(data.Wunschdatum).toLocaleDateString('de-DE') : '');
+  if (!CONFIG.web3formsKey && !CONFIG.formspreeId && emailIsPlaceholder) {
+    status.className = 'status err';
+    status.textContent = 'Online-Anfragen sind in Kürze möglich. Bitte versuch es bald noch einmal.';
+    return;
+  }
   const btn = $('#submitBtn'); btn.disabled = true; status.textContent = 'Wird gesendet …';
 
   try {
