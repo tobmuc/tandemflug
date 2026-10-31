@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tobmuc.github.io/tandemflug/sitemap.xml
